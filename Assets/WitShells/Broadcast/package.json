@@ -21,6 +21,6 @@
     ],
     "category": "Networking",
     "dependencies": {
-        "com.witshells.threadingjob": "https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=/Assets/WitShells/ThreadingJob"
+        "com.witshells.threadingjob": "https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ThreadingJob"
     }
 }

@@ -14,6 +14,7 @@
   <Project Path="WitShells.ShootingSystem.csproj" />
   <Project Path="ParticlesPresets.csproj" />
   <Project Path="UMotionSourceEditor.csproj" />
+  <Project Path="Broadcast.csproj" />
   <Project Path="WitShells.WebRTCWit.csproj" />
   <Project Path="DesignPatternEditor.csproj" />
   <Project Path="MilitaryGridSystem.Editor.csproj" />
@@ -29,6 +30,7 @@
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="WitWebSocket.Editor.csproj" />
   <Project Path="MilitaryGridSystem.csproj" />
+  <Project Path="BroadcsatEditor.csproj" />
   <Project Path="WitActor.Editor.csproj" />
   <Project Path="ThirdPersonControl.Editor.csproj" />
   <Project Path="WitMultiplayer.csproj" />

@@ -1,0 +1,16 @@
+{
+    "name": "BroadcsatEditor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d3620663804592d428c944d30b43aba2"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

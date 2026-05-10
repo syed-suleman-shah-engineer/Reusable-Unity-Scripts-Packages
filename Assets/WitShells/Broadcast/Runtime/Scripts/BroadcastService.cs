@@ -21,6 +21,8 @@ namespace WitShells.Broadcast
     {
         /// <summary>Raised when a response packet is received. Message is UTF8-decoded.</summary>
         public event Action<string, IPEndPoint> OnResponseReceived;
+        public event Action OnListeningStopped;
+        public event Action<Exception> OnError;
 
         private BroadcastListenJob _currentJob;
 
@@ -50,8 +52,8 @@ namespace WitShells.Broadcast
                         OnResponseReceived?.Invoke(msg, new IPEndPoint(IPAddress.None, 0));
                     }
                 },
-                onComplete: () => OnResponseReceived?.Invoke(null, null),
-                onError: ex => OnResponseReceived?.Invoke(null, null));
+                onComplete: () => OnListeningStopped?.Invoke(),
+                onError: ex => OnError?.Invoke(ex));
         }
 
         /// <summary>Stops listening immediately by closing the underlying UDP socket.</summary>

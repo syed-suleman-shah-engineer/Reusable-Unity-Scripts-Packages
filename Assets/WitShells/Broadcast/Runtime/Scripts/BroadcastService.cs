@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using WitShells.DesignPatterns;
 using WitShells.ThreadingJob;
 
@@ -12,7 +13,7 @@ namespace WitShells.Broadcast
     /// Usage:
     /// var svc = new BroadcastService();
     /// svc.OnResponseReceived += (msg, remote) => { ... };
-    /// svc.StartBroadcast("ip_request", port: 7777, repeatIntervalMs: 0, waitForResponses: true, singleResponse: false);
+    /// svc.StartListening(port: 7777, singleResponse: false, durationMs: 5000);
     /// svc.Stop();
     /// svc.Dispose();
     /// </summary>
@@ -21,13 +22,21 @@ namespace WitShells.Broadcast
         /// <summary>Raised when a response packet is received. Message is UTF8-decoded.</summary>
         public event Action<string, IPEndPoint> OnResponseReceived;
 
+        private BroadcastListenJob _currentJob;
+
         /// <summary>
-        /// Start listening for UDP responses on a port. If singleResponse is true, stop after first message.
+        /// Start listening for UDP responses on a port.
         /// </summary>
-        public void StartListening(int port, bool singleResponse = true)
+        /// <param name="port">UDP port to listen on.</param>
+        /// <param name="singleResponse">If true, stops after the first received message.</param>
+        /// <param name="durationMs">How long to listen in milliseconds. 0 means infinite.</param>
+        public void StartListening(int port, bool singleResponse = true, int durationMs = 0)
         {
-            var listenJob = new BroadcastListenJob(port, singleResponse);
-            ThreadManager.Instance.EnqueueStreamingJob<string>(listenJob,
+            Stop();
+
+            _currentJob = new BroadcastListenJob(port, singleResponse, durationMs);
+
+            ThreadManager.Instance.EnqueueStreamingJob<string>(_currentJob,
                 onProgress: (msg) =>
                 {
                     var parts = msg.Split('|');
@@ -41,14 +50,15 @@ namespace WitShells.Broadcast
                         OnResponseReceived?.Invoke(msg, new IPEndPoint(IPAddress.None, 0));
                     }
                 },
-                onComplete: null,
-                onError: ex => WitLogger.LogWarning($"BroadcastService: listen job error: {ex.Message}"));
+                onComplete: () => OnResponseReceived?.Invoke(null, null),
+                onError: ex => OnResponseReceived?.Invoke(null, null));
         }
 
-        /// <summary>Stops listening (no-op; streaming job ends on singleResponse). For future cancellation support.</summary>
+        /// <summary>Stops listening immediately by closing the underlying UDP socket.</summary>
         public void Stop()
         {
-            // If we add cancellation tokens to jobs, cancel here.
+            _currentJob?.Cancel();
+            _currentJob = null;
         }
 
         public void Dispose()
@@ -67,24 +77,56 @@ namespace WitShells.Broadcast
     {
         private readonly int _port;
         private readonly bool _singleResponse;
+        private readonly int _durationMs;
+        private UdpClient _udpClient;
+        private volatile bool _cancelled;
+
+        // How long Receive() blocks before re-checking the loop condition (ms).
+        private const int ReceivePollIntervalMs = 200;
+
         public override bool IsStreaming { get; protected set; } = true;
 
-        public BroadcastListenJob(int port, bool singleResponse)
+        public BroadcastListenJob(int port, bool singleResponse, int durationMs = 0)
         {
             _port = port;
             _singleResponse = singleResponse;
+            _durationMs = durationMs;
+        }
+
+        /// <summary>Cancels the listening loop by closing the UDP socket.</summary>
+        public void Cancel()
+        {
+            _cancelled = true;
+            try { _udpClient?.Close(); } catch { }
         }
 
         public override void ExecuteStreaming(Action<string> onProgress, Action onComplete = null)
         {
-            UdpClient listener = null;
+            long startMs = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
             try
             {
-                listener = new UdpClient(_port);
-                while (true)
+                _udpClient = new UdpClient(_port);
+                // Short timeout so the loop can re-check cancellation and duration
+                // even when no packets arrive.
+                _udpClient.Client.ReceiveTimeout = ReceivePollIntervalMs;
+
+                while (!_cancelled)
                 {
+                    if (_durationMs > 0 && DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond - startMs >= _durationMs)
+                        break;
+
                     IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-                    byte[] data = listener.Receive(ref remoteEP);
+                    byte[] data;
+                    try
+                    {
+                        data = _udpClient.Receive(ref remoteEP);
+                    }
+                    catch (SocketException sx) when (sx.SocketErrorCode == SocketError.TimedOut)
+                    {
+                        // Poll timeout — loop back and re-check conditions.
+                        continue;
+                    }
+
                     string message = Encoding.UTF8.GetString(data);
                     onProgress?.Invoke($"{remoteEP.Address}|{remoteEP.Port}|{message}");
                     if (_singleResponse) break;
@@ -94,11 +136,11 @@ namespace WitShells.Broadcast
             catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
-                Exception = ex;
+                if (!_cancelled) Exception = ex;
             }
             finally
             {
-                try { listener?.Close(); } catch { }
+                try { _udpClient?.Close(); } catch { }
                 onComplete?.Invoke();
             }
         }

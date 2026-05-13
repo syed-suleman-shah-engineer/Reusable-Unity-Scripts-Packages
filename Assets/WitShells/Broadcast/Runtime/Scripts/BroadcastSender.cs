@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -34,6 +36,7 @@ namespace WitShells.Broadcast
         public void Start(string message, int port, PeriodicMode mode, int intervalMs = 1000, int maxRetries = 3, BroadcastService listenService = null)
         {
             Stop();
+            _stopped = false;
 
             switch (mode)
             {
@@ -129,22 +132,65 @@ namespace WitShells.Broadcast
 
         public override bool Execute()
         {
-            try
+            var bytes = Encoding.UTF8.GetBytes(_message ?? string.Empty);
+            bool atLeastOne = false;
+
+            foreach (var broadcastAddr in GetDirectedBroadcastAddresses())
             {
-                using (var client = new UdpClient())
+                try
                 {
-                    client.EnableBroadcast = true;
-                    var bytes = Encoding.UTF8.GetBytes(_message ?? string.Empty);
-                    var ep = new IPEndPoint(IPAddress.Broadcast, _port);
-                    client.Send(bytes, bytes.Length, ep);
+                    using (var client = new UdpClient())
+                    {
+                        client.EnableBroadcast = true;
+                        var ep = new IPEndPoint(broadcastAddr, _port);
+                        client.Send(bytes, bytes.Length, ep);
+                        atLeastOne = true;
+                    }
                 }
-                return true;
+                catch (Exception ex)
+                {
+                    Exception = ex; // keep last error; continue to remaining interfaces
+                }
             }
-            catch (Exception ex)
+
+            return atLeastOne;
+        }
+
+        /// <summary>
+        /// Returns the subnet-directed broadcast address for every active IPv4 NIC
+        /// (e.g. 192.168.1.255 instead of the limited 255.255.255.255).
+        /// Directed broadcasts are forwarded within the local subnet by the OS,
+        /// allowing all devices on the same router to receive the packet.
+        /// Falls back to IPAddress.Broadcast only when no suitable NIC is found.
+        /// </summary>
+        private static List<IPAddress> GetDirectedBroadcastAddresses()
+        {
+            var result = new List<IPAddress>();
+
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-                Exception = ex;
-                return false;
+                if (ni.OperationalStatus != OperationalStatus.Up) continue;
+                if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+                foreach (var unicast in ni.GetIPProperties().UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                    if (unicast.IPv4Mask == null) continue;
+
+                    byte[] ip   = unicast.Address.GetAddressBytes();
+                    byte[] mask = unicast.IPv4Mask.GetAddressBytes();
+                    var broadcast = new byte[4];
+                    for (int i = 0; i < 4; i++)
+                        broadcast[i] = (byte)(ip[i] | ~mask[i]);
+
+                    result.Add(new IPAddress(broadcast));
+                }
             }
+
+            if (result.Count == 0)
+                result.Add(IPAddress.Broadcast); // fallback
+
+            return result;
         }
     }
 }

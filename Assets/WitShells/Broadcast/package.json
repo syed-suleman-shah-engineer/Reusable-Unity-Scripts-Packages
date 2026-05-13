@@ -1,6 +1,6 @@
 {
     "name": "com.witshells.broadcast",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "displayName": "WitShells Broadcast",
     "description": "UDP broadcast sender/listener utilities for LAN discovery and local network communication, built on ThreadingJob.",
     "unity": "2021.3",

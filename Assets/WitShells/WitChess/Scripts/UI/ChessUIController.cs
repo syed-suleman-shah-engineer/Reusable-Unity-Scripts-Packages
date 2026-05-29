@@ -15,6 +15,7 @@ namespace WitChess
         [SerializeField] private int _aiDepth = 4;
         [SerializeField] private bool _isAIEnabled = true;
         [SerializeField] private bool _rotateBoardOnTurnChange = false;
+        [SerializeField] private bool _rotateTilesOnTurnChange = false;
         [SerializeField] private bool _isMultiplayer = false;
         [SerializeField] private PromotionPopupUI _promotionPopup;
 
@@ -136,7 +137,8 @@ namespace WitChess
                 }
             }
 
-            ApplyBoardRotation(_humanPlayer == EPlayer.White ? 180f : 0f);
+            float initAngle = _humanPlayer == EPlayer.White ? 180f : 0f;
+            ApplyBoardRotation(initAngle, initAngle);
         }
 
         // ── Input ─────────────────────────────────────────────────────────────
@@ -379,18 +381,16 @@ namespace WitChess
         {
             if (_boardParent == null || _chess == null) return;
 
-            if (_rotateBoardOnTurnChange)
-            {
-                float turnAngle = _chess.CurrentPlayer == EPlayer.White ? 180f : 0f;
-                ApplyBoardRotation(turnAngle);
-                return;
-            }
-
+            float turnAngle = _chess.CurrentPlayer == EPlayer.White ? 180f : 0f;
             float staticAngle = _humanPlayer == EPlayer.White ? 180f : 0f;
-            ApplyBoardRotation(staticAngle);
+
+            float boardAngle = _rotateBoardOnTurnChange ? turnAngle : staticAngle;
+            float tilesAngle = _rotateTilesOnTurnChange ? turnAngle : staticAngle;
+
+            ApplyBoardRotation(boardAngle, tilesAngle);
         }
 
-        private void ApplyBoardRotation(float boardZ)
+        private void ApplyBoardRotation(float boardZ, float tilesZ)
         {
             _boardParent.localEulerAngles = new Vector3(0f, 0f, boardZ);
 
@@ -400,7 +400,7 @@ namespace WitChess
                 {
                     TileUI tile = _tileUIs[row, col];
                     if (tile != null)
-                        tile.transform.localEulerAngles = new Vector3(0f, 0f, boardZ);
+                        tile.transform.localEulerAngles = new Vector3(0f, 0f, tilesZ);
                 }
             }
         }

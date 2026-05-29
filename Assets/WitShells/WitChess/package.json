@@ -1,6 +1,6 @@
 {
     "name": "com.witshells.chess",
-    "version": "1.0.0",
+    "version": "1.0.5",
     "displayName": "WitShells Chess",
     "description": "Lightweight Unity package that provides chess game functionalities, including UI customization and AI opponent.",
     "unity": "2021.3",

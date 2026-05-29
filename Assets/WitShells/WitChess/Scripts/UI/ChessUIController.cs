@@ -13,16 +13,23 @@ namespace WitChess
         [Header("Game Settings")]
         [SerializeField] private EPlayer _humanPlayer = EPlayer.White;
         [SerializeField] private int _aiDepth = 4;
+        [SerializeField] private bool _isAIEnabled = true;
+        [SerializeField] private bool _rotateBoardOnTurnChange = false;
+        [SerializeField] private bool _isMultiplayer = false;
+        [SerializeField] private PromotionPopupUI _promotionPopup;
 
         private readonly TileUI[,] _tileUIs = new TileUI[8, 8];
 
         private ChessManager _chess;
         private MainPlayer _mainPlayer;
         private AIPlayer _aiPlayer;
+        private LobbyPlayer _lobbyPlayer;
 
         private Spot _selectedSpot;
         private TileUI _lastMoveTileFrom;
         private TileUI _lastMoveTileTo;
+        private Spot _checkHighlightSpot;
+        private bool _isUndoingDouble;
 
         // Preview + queue state (active during AI's turn)
         private Spot _previewSelectedSpot;
@@ -30,6 +37,11 @@ namespace WitChess
         private Move _queuedMove;
         private Spot _queuedFromSpot;
         private Spot _queuedToSpot;
+
+        // True when the local user controls the current turn:
+        //   - Local 2-player (no AI, no network): always
+        //   - vs AI or network multiplayer: only when it is the human player's colour
+        private bool IsHumanTurn => (!_isAIEnabled && !_isMultiplayer) || _chess.CurrentPlayer == _humanPlayer;
 
         // ── Lifecycle ────────────────────────────────────────────────────────
 
@@ -39,14 +51,11 @@ namespace WitChess
             GenerateLayout();
         }
 
-        private void Start()
-        {
-            StartGame();
-        }
-
         // ── Game Initialization ───────────────────────────────────────────────
 
-        private void StartGame()
+        #region Public API
+
+        public void StartGame(bool isAgainstAI, EPlayer humanPlaysAs, int aiSearchDepth, bool rotateBoardOnTurnChange, LobbyPlayer lobbyPlayer = null, bool isMultiplayer = false)
         {
             Board board = BoardFactory.CreateStandard();
 
@@ -57,27 +66,55 @@ namespace WitChess
             _chess.OnGameOver += HandleGameOver;
             _chess.OnCheck += HandleCheck;
 
+            _isAIEnabled = isAgainstAI;
+            _humanPlayer = humanPlaysAs;
+            _rotateBoardOnTurnChange = rotateBoardOnTurnChange;
+            _lobbyPlayer = lobbyPlayer;
+            _isMultiplayer = isMultiplayer;
             _chess.Setup(board, EPlayer.White);
 
             _mainPlayer = new MainPlayer { PlayerType = _humanPlayer };
             _mainPlayer.OnMoveChosen += move => _chess.ExecuteMove(move);
 
-            _aiPlayer = new AIPlayer(_chess.GameState) { PlayerType = _humanPlayer.Opponent(), Depth = _aiDepth };
-            _aiPlayer.OnMoveChosen += move => _chess.ExecuteMove(move);
+            if (_isAIEnabled)
+            {
+                _aiDepth = aiSearchDepth;
+                _aiPlayer = new AIPlayer(_chess.GameState) { PlayerType = _humanPlayer.Opponent(), Depth = _aiDepth };
+                _aiPlayer.OnMoveChosen += move => _chess.ExecuteMove(move);
+            }
+            else if (_lobbyPlayer != null)
+            {
+                _lobbyPlayer.PlayerType = _humanPlayer.Opponent();
+                _lobbyPlayer.OnMoveChosen += move => _chess.ExecuteMove(move);
+            }
 
             RefreshAllPieces();
+            UpdateBoardOrientationForCurrentTurn();
             NotifyCurrentPlayer();
         }
+
+        // Undoes the last human move and the AI's response.
+        // Only valid in AI mode when it is the human's turn (AI has already replied).
+        public void Undo()
+        {
+            if (!_isAIEnabled) return;
+            if (!IsHumanTurn) return;
+            if (_chess.GameState.MoveCount < 2) return;
+
+            // Suppress the mid-undo turn notification so the AI does not start
+            // thinking again after the first undo temporarily restores its turn.
+            _isUndoingDouble = true;
+            _chess.UndoMove();      // revert AI's last move
+            _isUndoingDouble = false;
+            _chess.UndoMove();      // revert human's last move → human's turn restored
+        }
+
+        #endregion
 
         // ── Board Layout ──────────────────────────────────────────────────────
 
         private void GenerateLayout()
         {
-            float boardZ = _humanPlayer == EPlayer.White ? 180f : 0f;
-            float tileZ = boardZ;
-
-            _boardParent.localEulerAngles = new Vector3(0f, 0f, boardZ);
-
             for (int row = 0; row < 8; row++)
             {
                 for (int col = 0; col < 8; col++)
@@ -85,9 +122,6 @@ namespace WitChess
                     TileUI tile = Instantiate(_tilePrefab, _boardParent);
                     tile.name = $"Tile_{row}_{col}";
                     _tileUIs[row, col] = tile;
-
-                    // Counter-rotate each tile so its content stays upright
-                    tile.transform.localEulerAngles = new Vector3(0f, 0f, tileZ);
 
                     bool isLight = (row + col) % 2 == 0;
                     tile.SetColor(isLight
@@ -101,6 +135,8 @@ namespace WitChess
                     tile.OnTileClicked += _ => OnTileClicked(r, c);
                 }
             }
+
+            ApplyBoardRotation(_humanPlayer == EPlayer.White ? 180f : 0f);
         }
 
         // ── Input ─────────────────────────────────────────────────────────────
@@ -111,7 +147,7 @@ namespace WitChess
 
             Spot clicked = new Spot(row, col);
 
-            if (_chess.CurrentPlayer == _humanPlayer)
+            if (IsHumanTurn)
             {
                 // Human's turn — normal flow; wipe any leftover queue state
                 ClearQueueHighlight();
@@ -123,9 +159,17 @@ namespace WitChess
                 {
                     if (_chess.HasCachedMove(clicked, out Move move))
                     {
+                        Spot fromSpot = _selectedSpot;
                         ClearHighlights();
                         _selectedSpot = null;
-                        _mainPlayer.OnMoveChosen.Invoke(move);
+
+                        if (TryGetPromotionMoves(fromSpot, clicked, out List<PawnPromotion> promotions))
+                        {
+                            ShowPromotionPopup(promotions);
+                            return;
+                        }
+
+                        _mainPlayer.OnMoveChosen?.Invoke(move);
                     }
                     else
                     {
@@ -205,6 +249,7 @@ namespace WitChess
         {
             _lastMoveTileFrom?.SetHighlight(false, Color.clear);
             _lastMoveTileTo?.SetHighlight(false, Color.clear);
+            ClearCheckHighlight();
 
             foreach (Move m in move.GetNormalMoves())
             {
@@ -239,13 +284,22 @@ namespace WitChess
             _lastMoveTileTo?.SetHighlight(false, Color.clear);
             _lastMoveTileFrom = null;
             _lastMoveTileTo = null;
+            ClearCheckHighlight();
             RefreshAllPieces();
         }
 
-        private void HandleTurnSwitched(EPlayer _) => NotifyCurrentPlayer();
+        private void HandleTurnSwitched(EPlayer _)
+        {
+            UpdateBoardOrientationForCurrentTurn();
+            NotifyCurrentPlayer();
+        }
 
         private void HandleCheck(EPlayer _, Spot kingSpot)
-            => _tileUIs[kingSpot.Row, kingSpot.Column].SetHighlight(true, _uiSettings.CurrentTemplateScheme.CheckHighlightColor);
+        {
+            ClearCheckHighlight();
+            _checkHighlightSpot = kingSpot;
+            _tileUIs[kingSpot.Row, kingSpot.Column].SetHighlight(true, _uiSettings.CurrentTemplateScheme.CheckHighlightColor);
+        }
 
         private void HandleGameOver(Result result)
             => Debug.Log($"Game Over: {result}");
@@ -255,14 +309,15 @@ namespace WitChess
         private void NotifyCurrentPlayer()
         {
             if (_chess.IsGameOver) return;
+            if (_isUndoingDouble) return;
 
-            if (_chess.CurrentPlayer == _humanPlayer)
+            if (IsHumanTurn)
             {
                 ClearQueueHighlight();
 
                 if (_queuedMove != null)
                 {
-                    // Validate the queued move is still legal after AI's move
+                    // Validate the queued move is still legal after the opponent's move
                     Move validated = null;
                     foreach (Move m in _chess.AllLegalMovesFor(_humanPlayer))
                     {
@@ -281,11 +336,72 @@ namespace WitChess
             }
             else
             {
-                // Clear stale preview before AI starts thinking
+                // Clear stale preview before opponent starts thinking
                 ClearPreviewHighlights();
                 _previewSelectedSpot = null;
                 _previewMoveCache.Clear();
-                _aiPlayer.NotifyTurnToMove();
+                _aiPlayer?.NotifyTurnToMove();
+                _lobbyPlayer?.NotifyTurnToMove();
+            }
+        }
+
+        private bool TryGetPromotionMoves(Spot from, Spot to, out List<PawnPromotion> promotions)
+        {
+            promotions = new List<PawnPromotion>();
+
+            foreach (Move move in _chess.AllLegalMovesFor(_chess.CurrentPlayer))
+            {
+                if (move is PawnPromotion promotion && move.FromPos == from && move.ToPos == to)
+                    promotions.Add(promotion);
+            }
+
+            return promotions.Count > 0;
+        }
+
+        private void ShowPromotionPopup(List<PawnPromotion> promotions)
+        {
+            PawnPromotion fallbackPromotion = promotions.Find(p => p.NewType == EPieceType.Queen) ?? promotions[0];
+
+            if (_promotionPopup == null)
+            {
+                _mainPlayer.OnMoveChosen?.Invoke(fallbackPromotion);
+                return;
+            }
+
+            _promotionPopup.Show(selectedType =>
+            {
+                PawnPromotion chosen = promotions.Find(p => p.NewType == selectedType) ?? fallbackPromotion;
+                _mainPlayer.OnMoveChosen?.Invoke(chosen);
+            });
+        }
+
+        private void UpdateBoardOrientationForCurrentTurn()
+        {
+            if (_boardParent == null || _chess == null) return;
+
+            if (_rotateBoardOnTurnChange)
+            {
+                float turnAngle = _chess.CurrentPlayer == EPlayer.White ? 180f : 0f;
+                ApplyBoardRotation(turnAngle);
+                return;
+            }
+
+            float staticAngle = _humanPlayer == EPlayer.White ? 180f : 0f;
+            ApplyBoardRotation(staticAngle);
+        }
+
+        private void ApplyBoardRotation(float boardZ)
+        {
+            _boardParent.localEulerAngles = new Vector3(0f, 0f, boardZ);
+
+            for (int row = 0; row < 8; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    TileUI tile = _tileUIs[row, col];
+                    if (tile != null)
+                        tile.transform.localEulerAngles = new Vector3(0f, 0f, boardZ);
+                }
             }
         }
 
@@ -357,6 +473,14 @@ namespace WitChess
             _queuedToSpot = null;
         }
 
+        private void ClearCheckHighlight()
+        {
+            if (_checkHighlightSpot == null) return;
+            bool isLight = (_checkHighlightSpot.Row + _checkHighlightSpot.Column) % 2 == 0;
+            _tileUIs[_checkHighlightSpot.Row, _checkHighlightSpot.Column].SetHighlight(false, Color.clear);
+            _checkHighlightSpot = null;
+        }
+
         // ── Visuals ───────────────────────────────────────────────────────────
 
         private void RefreshAllPieces()
@@ -395,5 +519,48 @@ namespace WitChess
                     _ => null
                 };
         }
+
+
+#if UNITY_EDITOR
+
+        [ContextMenu("Play Test Game vs AI")]
+        private void PlayTestGameVsAI()
+        {
+            StartGame(isAgainstAI: true, humanPlaysAs: EPlayer.Black, aiSearchDepth: 2, rotateBoardOnTurnChange: false);
+        }
+
+        [ContextMenu("Play Test Game vs Lobby Player")]
+        private void PlayTestGameVsLobbyPlayer()
+        {
+            LobbyPlayer lobbyPlayer = new LobbyPlayer();
+            StartGame(isAgainstAI: false, humanPlaysAs: EPlayer.White, aiSearchDepth: 2, rotateBoardOnTurnChange: true, lobbyPlayer: lobbyPlayer, isMultiplayer: false);
+        }
+
+        [ContextMenu("Play Test Multiplayer Game")]
+        private void PlayTestMultiplayerGame()
+        {
+            LobbyPlayer lobbyPlayer = new LobbyPlayer();
+            StartGame(isAgainstAI: false, humanPlaysAs: EPlayer.White, aiSearchDepth: 2, rotateBoardOnTurnChange: false, lobbyPlayer: lobbyPlayer, isMultiplayer: true);
+        }
+
+        [ContextMenu("Test Multiplayer Random Move")]
+        private void TestMultiplayerRandomMove()
+        {
+            if (_lobbyPlayer == null) return;
+
+            List<Move> legalMoves = new List<Move>(_chess.AllLegalMovesFor(_lobbyPlayer.PlayerType));
+            if (legalMoves.Count == 0) return;
+
+            Move randomMove = legalMoves[Random.Range(0, legalMoves.Count)];
+            _lobbyPlayer.OnMoveChosen?.Invoke(randomMove);
+        }
+
+        [ContextMenu("Undo Move")]
+        private void UndoMove()
+        {
+            Undo();
+        }
+
+#endif
     }
 }

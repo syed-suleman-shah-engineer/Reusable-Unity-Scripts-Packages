@@ -41,37 +41,37 @@ namespace WitShells.Broadcast
             switch (mode)
             {
                 case PeriodicMode.LoopSingle:
-                {
-                    _timer = new Timer(_ =>
                     {
-                        ThreadManager.Instance.EnqueueJob(new BroadcastSendJob(message, port), _ => { }, ex => WitLogger.LogWarning($"BroadcastSender: send failed: {ex.Message}"));
-                    }, null, 0, intervalMs);
-                    break;
-                }
+                        _timer = new Timer(_ =>
+                        {
+                            ThreadManager.Instance.EnqueueJob(new BroadcastSendJob(message, port), _ => { }, ex => WitLogger.LogWarning($"BroadcastSender: send failed: {ex.Message}"));
+                        }, null, 0, intervalMs);
+                        break;
+                    }
                 case PeriodicMode.UntilResponse:
-                {
-                    if (listenService == null)
                     {
-                        WitLogger.LogWarning("BroadcastSender: UntilResponse mode requires a BroadcastService instance");
-                        return;
-                    }
+                        if (listenService == null)
+                        {
+                            WitLogger.LogWarning("BroadcastSender: UntilResponse mode requires a BroadcastService instance");
+                            return;
+                        }
 
-                    void Handler(string payload, IPEndPoint ep)
-                    {
-                        try { _timer?.Dispose(); } catch { }
-                        _timer = null;
-                        listenService.OnResponseReceived -= Handler;
-                        _stopped = true;
-                    }
-                    listenService.OnResponseReceived += Handler;
+                        void Handler(string payload, IPEndPoint ep)
+                        {
+                            try { _timer?.Dispose(); } catch { }
+                            _timer = null;
+                            listenService.OnResponseReceived -= Handler;
+                            _stopped = true;
+                        }
+                        listenService.OnResponseReceived += Handler;
 
-                    _timer = new Timer(_ =>
-                    {
-                        if (_stopped) return;
-                        ThreadManager.Instance.EnqueueJob(new BroadcastSendJob(message, port), __ => { }, ex => WitLogger.LogWarning($"BroadcastSender: send failed: {ex.Message}"));
-                    }, null, 0, intervalMs);
-                    break;
-                }
+                        _timer = new Timer(_ =>
+                        {
+                            if (_stopped) return;
+                            ThreadManager.Instance.EnqueueJob(new BroadcastSendJob(message, port), __ => { }, ex => WitLogger.LogWarning($"BroadcastSender: send failed: {ex.Message}"));
+                        }, null, 0, intervalMs);
+                        break;
+                    }
                 case PeriodicMode.RetryOnFailure:
                 {
                     int attempts = 0;
@@ -97,9 +97,9 @@ namespace WitShells.Broadcast
                             });
                     }
 
-                    TrySendOnce();
-                    break;
-                }
+                        TrySendOnce();
+                        break;
+                    }
             }
         }
 
@@ -177,7 +177,7 @@ namespace WitShells.Broadcast
                     if (unicast.Address.AddressFamily != AddressFamily.InterNetwork) continue;
                     if (unicast.IPv4Mask == null) continue;
 
-                    byte[] ip   = unicast.Address.GetAddressBytes();
+                    byte[] ip = unicast.Address.GetAddressBytes();
                     byte[] mask = unicast.IPv4Mask.GetAddressBytes();
                     var broadcast = new byte[4];
                     for (int i = 0; i < 4; i++)

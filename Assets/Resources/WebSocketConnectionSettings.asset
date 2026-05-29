@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f59656053423e14887b56a7b2610556, type: 3}
   m_Name: WebSocketConnectionSettings
   m_EditorClassIdentifier: 
-  serverUrl: ws://localhost:5163
+  serverUrl: wss://witcoin.witshells.com/api/game/connect
   protocols:
-  - signaling
+  - api/game/connect
   defaultProtocolIndex: 0
-  useSecureConnection: 0
+  useSecureConnection: 1

@@ -20,113 +20,113 @@ All packages install via Unity Package Manager using Git URLs.
 
 ### WitPose - Bio-Kinetic Posing Tool
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitPose
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitPose
 ```
 
 ### Design Patterns
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/DesignPatterns
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/DesignPatterns
 ```
-📖 [View Documentation](https://Sulaiman281.github.io/Reusable-Unity-Scripts-Packages/articles/design-patterns.html)
+📖 [View Documentation](https://syed-suleman-shah-engineer.github.io/Reusable-Unity-Scripts-Packages/articles/design-patterns.html)
 
 ### Third Person Control
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ThirdPersonControl
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ThirdPersonControl
 ```
 
 ### WitActor System
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitActor
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitActor
 ```
 
 ### Animation Rig
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitAnimationRig
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitAnimationRig
 ```
 
 ### WitMultiplayer
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitMultiplayer
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitMultiplayer
 ```
 
 ### WitClientApi
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitClientApi
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitClientApi
 ```
 
 ### Dialogs Manager
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/DialogsManager
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/DialogsManager
 ```
 
 ### Tank Controls
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/TankControls
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/TankControls
 ```
 
 ### Shooting System
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ShootingSystem
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ShootingSystem
 ```
 
 ### Simple Vehicle Control
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/SimpleVehicleControl
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/SimpleVehicleControl
 ```
 
 ### Military Grid System
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/MilitaryGridSystem
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/MilitaryGridSystem
 ```
 
 ### Canvas Draw Tool
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/CanvasDrawTool
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/CanvasDrawTool
 ```
 
 ### Particles Presets
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ParticlesPresets
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ParticlesPresets
 ```
 
 ### Spline Runtime
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/SplineRuntime
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/SplineRuntime
 ```
 
 ### Threading Job
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ThreadingJob
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/ThreadingJob
 ```
 
 ### Broadcast (UDP)
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/Broadcast
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/Broadcast
 ```
 
 ### WebRTC P2P
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WebRTC-Wit
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WebRTC-Wit
 ```
 
 ### Live Microphone
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/LiveMic
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/LiveMic
 ```
 
 ### Map View
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/MapView
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/MapView
 ```
 
 ### SQLite Database
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/SqLite
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/SqLite
 ```
 
 ### WitChess
 ```
-https://github.com/Sulaiman281/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitChess
+https://github.com/syed-suleman-shah-engineer/Reusable-Unity-Scripts-Packages.git?path=Assets/WitShells/WitChess
 ```
 
 ---
@@ -209,8 +209,8 @@ public class PoseController : MonoBehaviour
 
 ### 2. Design Patterns
 
-> 📖 **[Full Documentation →](https://Sulaiman281.github.io/Reusable-Unity-Scripts-Packages/articles/design-patterns.html)** — Comprehensive guide with examples for every pattern
-> 🔬 **[API Reference →](https://Sulaiman281.github.io/Reusable-Unity-Scripts-Packages/api/WitShells.DesignPatterns.Core.html)** — Auto-generated class & method reference
+> 📖 **[Full Documentation →](https://syed-suleman-shah-engineer.github.io/Reusable-Unity-Scripts-Packages/articles/design-patterns.html)** — Comprehensive guide with examples for every pattern
+> 🔬 **[API Reference →](https://syed-suleman-shah-engineer.github.io/Reusable-Unity-Scripts-Packages/api/WitShells.DesignPatterns.Core.html)** — Auto-generated class & method reference
 
 Production-ready design pattern implementations optimized for Unity.
 

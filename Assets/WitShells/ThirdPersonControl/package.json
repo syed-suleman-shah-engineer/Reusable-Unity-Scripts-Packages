@@ -1,6 +1,6 @@
 {
     "name": "com.witshells.thirdpersoncontrol",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "displayName": "WitShells Third Person Control",
     "description": "Complete third-person character controller with ScriptableObject settings, New Input System support, Cinemachine 3.0 integration, locomotion, jumping, sprinting, and crouching.",
     "unity": "2021.3",

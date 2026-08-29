@@ -58,7 +58,7 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
-*.fbx
+# *.fbx
 
 # Unity3D generated meta files
 *.pidb.meta
@@ -80,6 +80,8 @@ crashlytics-build.properties
 # Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 
+!/Assets/WitShells/ThirdPersonControl/**.fbx
+
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
@@ -88,6 +90,8 @@ crashlytics-build.properties
 /[Aa]ssets/Realistic Car Controller Pro
 /[Aa]ssets/TextMesh Pro
 /[Aa]ssets/Samples
+/[Aa]ssets/Animations
+/[Aa]ssets/Models
 
 # DocFX generated output
 docs/_site/

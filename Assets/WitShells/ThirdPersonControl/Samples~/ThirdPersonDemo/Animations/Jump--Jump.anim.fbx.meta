@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b1666ea1d0f120247b4e9511156cdbb6
+guid: 98f277b0c8055e143b2fcf058d3c27dc
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable:
@@ -96,14 +96,7 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events:
-      - time: 0.27999985
-        functionName: OnLand
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
+      events: []
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

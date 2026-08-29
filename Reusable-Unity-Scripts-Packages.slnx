@@ -1,6 +1,8 @@
 ﻿<Solution>
   <Project Path="ThreadingJobEditor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Unity.WebRTC.Samples.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="SplineRuntime.csproj" />
   <Project Path="WitChess.Runtime.csproj" />
   <Project Path="MapView.csproj" />
@@ -10,7 +12,6 @@
   <Project Path="WitShells.McqUI.csproj" />
   <Project Path="WitDesignPattern.csproj" />
   <Project Path="WitClientApi.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="WitShells.ShootingSystem.csproj" />
   <Project Path="ParticlesPresets.csproj" />
   <Project Path="UMotionSourceEditor.csproj" />
@@ -27,7 +28,6 @@
   <Project Path="WitShells.McqUI.Editor.csproj" />
   <Project Path="SimpleCarController.Editor.csproj" />
   <Project Path="SimpleVehicleControl.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="WitWebSocket.Editor.csproj" />
   <Project Path="MilitaryGridSystem.csproj" />
   <Project Path="BroadcsatEditor.csproj" />
